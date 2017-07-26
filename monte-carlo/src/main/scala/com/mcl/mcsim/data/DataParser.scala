@@ -2,6 +2,8 @@ package com.mcl.mcsim.data
 
 import java.io.File
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 import com.github.nscala_time.time.Imports._
 
@@ -18,11 +20,26 @@ object DataParser {
 
     lines.map(line => {
       val cols = line.split(",(?=([^\"]*\"[^\"]*\")*(?![^\"]*\"))")
-      val dataAsText = removeLeadingTrailingQuotes(cols(0))
-      val date = new DateTime(format.parse(dataAsText))
+      val dateAsText = removeLeadingTrailingQuotes(cols(0))
+      val date = new DateTime(format.parse(dateAsText))
       val value = removeLeadingTrailingQuotes(cols(1)).toDouble
       (date, value)
     }).reverse
+  }
+
+
+  def readGoogleHistoryCSV(file: File): Array[(LocalDate, Double)] = {
+    val formatter = DateTimeFormatter.ofPattern("dd-MMM-yy")
+    val lines = scala.io.Source.fromFile(file).getLines().toSeq
+    lines.tail.map { line =>
+      val cols = line.split(',')
+      val dateAsText = removeLeadingTrailingQuotes(cols(0))
+      val dateWithAsTextWithPaddedZero = if (dateAsText.length == 8) "0" + dateAsText else dateAsText
+      val date = LocalDate.parse(dateWithAsTextWithPaddedZero, formatter)
+      val priceAsText = cols(1)
+      val value = if (priceAsText == "-") 0 else priceAsText.toDouble
+      (date, value)
+    }.reverse.toArray
   }
 
   private def removeLeadingTrailingQuotes(data: String): String = {

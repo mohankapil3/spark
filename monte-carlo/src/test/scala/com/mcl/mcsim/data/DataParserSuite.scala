@@ -15,4 +15,14 @@ class DataParserSuite extends FunSuite with Matchers {
     // More assertions?
   }
 
+  test("Google dot com history CSV file should be parseable") {
+
+    val testHistoryFile = new File(getClass.getResource("/test_stock_prices-google.csv").toURI)
+    val tuples = DataParser.readGoogleHistoryCSV(testHistoryFile)
+    tuples.length should be (10)
+    tuples.head._2 should be (0)
+    tuples.last._2 should be (30.80)
+    // More assertions?
+  }
+
 }
