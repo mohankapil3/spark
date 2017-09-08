@@ -11,3 +11,5 @@ Data Sources
 
 
 
+Downloaded data from sources has been checked in to folder - src/main/resources/downloaded-data. Ideally this shouldn't be checked in to source code repository but fear is that this FREE data might be unavailable at some time (as happened with yahoo finance)
+
