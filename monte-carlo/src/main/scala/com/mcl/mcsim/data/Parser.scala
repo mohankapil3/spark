@@ -9,7 +9,7 @@ import com.github.nscala_time.time.Imports._
 
 import scala.io.Source
 
-object DataParser {
+object Parser {
 
   def readInvestingDotComHistoryCSV(file: File): Array[(DateTime, Double)] = {
 
