@@ -21,7 +21,7 @@ object Cleanser {
     var cur = history
     val filled = new ArrayBuffer[(LocalDate, Double)]()
     var curDate = start
-    while (curDate.isBefore(end)) {
+    while (!curDate.isAfter(end)) {
       if (cur.tail.nonEmpty && cur.tail.head._1 == curDate) {
         cur = cur.tail
       }
@@ -39,9 +39,9 @@ object Cleanser {
 
   def twoWeekReturns(history: Array[(LocalDate, Double)]): Array[Double] = {
     history.sliding(10).map { window =>
-      val next = window.last._2
-      val prev = window.head._2
-      (next - prev) / prev
+      val end = window.last._2
+      val start = window.head._2
+      (end - start) / start
     }.toArray
   }
 
