@@ -50,7 +50,7 @@ class CleanserSuite extends FunSuite with Matchers {
     stuffed.last should be ((end, 8.54))
   }
 
-  test("Two weeks return") {
+  test("Calculate change in value over two weeks") {
     val start = LocalDate.of(2016, 12, 30)
     val end = LocalDate.of(2017, 1, 13)
     val items = Array(
@@ -60,7 +60,7 @@ class CleanserSuite extends FunSuite with Matchers {
 
     val stuffed = Cleanser.fillInHistory(items, start, end)
     val twoWeeksReturn = Cleanser.twoWeekReturns(stuffed)
-    twoWeeksReturn should be (Array(0, 4))
+    twoWeeksReturn should be (Array(0, 8))
   }
 
 }

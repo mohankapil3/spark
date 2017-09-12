@@ -38,11 +38,7 @@ object Cleanser {
   }
 
   def twoWeekReturns(history: Array[(LocalDate, Double)]): Array[Double] = {
-    history.sliding(10).map { window =>
-      val end = window.last._2
-      val start = window.head._2
-      (end - start) / start
-    }.toArray
+    history.sliding(10).map(window => window.last._2 - window.head._2).toArray
   }
 
 }
