@@ -1,7 +1,5 @@
 package com.mcl.mcsim.data
 
-import java.io.File
-
 import org.scalatest.{FunSuite, Matchers}
 
 class SourceDataCollectorSuite extends FunSuite with Matchers {
