@@ -20,4 +20,12 @@ class ProjectorSuite extends FunSuite with Matchers {
     Projector.transpose(matrix) should be (expectedTranspose)
   }
 
+  test("Should add more factors") {
+
+    val baseFactors = Array(2, 0.16, 9)
+    val expected = Array(4.0, 0.0256, 81.0, 1.4142135623730951, 0.4, 3.0, 2.0, 0.16, 9.0)
+    val actual = Projector.featurize(baseFactors)
+    actual should be (expected)
+  }
+
 }
