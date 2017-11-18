@@ -27,11 +27,8 @@ object Projector {
     regression
   }
 
-  def getFactorWeights(stockReturns: Seq[Array[Double]], factorReturns: Seq[Array[Double]]): Array[Array[Double]] = {
-    val factorMatrix = transpose(factorReturns)
-    val factorFeatures = factorMatrix.map(featurize)
-    val models = stockReturns.map(linearModel(_, factorFeatures))
-    models.map(_.estimateRegressionParameters()).toArray
+  def computeFactorWeights(stocksReturns: Seq[Array[Double]], factorFeatures: Array[Array[Double]]): Array[Array[Double]] = {
+    stocksReturns.map(linearModel(_, factorFeatures)).map(_.estimateRegressionParameters()).toArray
   }
 
 }
