@@ -4,7 +4,7 @@ import java.time.LocalDate
 
 import scala.collection.mutable.ArrayBuffer
 
-object Cleanser {
+trait Cleanser {
 
   def trimToRegion(history: Array[(LocalDate, Double)], start: LocalDate, end: LocalDate): Array[(LocalDate, Double)] = {
     var trimmed = history.dropWhile(_._1.isBefore(start)).takeWhile(x => x._1.isBefore(end) || x._1.isEqual(end))

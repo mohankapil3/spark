@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter
 
 import scala.io.Source
 
-object Parser {
+trait Parser {
 
   def readInvestingDotComHistoryCSV(file: File): Array[(LocalDate, Double)] = {
 

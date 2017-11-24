@@ -4,7 +4,7 @@ import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression
 
 import scala.reflect.ClassTag
 
-object Projector {
+trait Projector {
 
   def transpose[T <: Any : ClassTag](collection: Seq[Array[T]]) : Array[Array[T]] = {
     val newCollectionSize = collection.head.length

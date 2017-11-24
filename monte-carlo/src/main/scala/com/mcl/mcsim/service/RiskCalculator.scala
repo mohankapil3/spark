@@ -1,7 +1,6 @@
 package com.mcl.mcsim.service
 
-import com.mcl.mcsim.data.Projector._
-import com.mcl.mcsim.data.SourceDataCollector._
+import com.mcl.mcsim.data.{Projector, SourceDataCollector}
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution
 import org.apache.commons.math3.random.MersenneTwister
 import org.apache.commons.math3.stat.correlation.Covariance
@@ -10,19 +9,22 @@ import org.apache.spark.sql.{Dataset, SparkSession}
 object RiskCalculator {
 
   def main(args: Array[String]): Unit = {
+    val sourceDataCollector = new SourceDataCollector
+    val (stocksReturns, factorsReturns) = sourceDataCollector.readStocksAndFactors()
+
     val sparkSession = SparkSession.builder().appName("RiskCalculator").config("spark.master", "local").getOrCreate()
-    val calculateRisk = new RiskCalculator(sparkSession)
+    val riskCalculator = new RiskCalculator(sparkSession)
 
     val numTrials = 100000
     val parallelism = 8
     val baseSeed = 1001L
-    val (stocksReturns, factorsReturns) = readStocksAndFactors
-    val trials: Dataset[Double] = calculateRisk.computeTrialReturns(stocksReturns, factorsReturns, baseSeed, numTrials, parallelism)
+
+    val trials: Dataset[Double] = riskCalculator.computeTrialReturns(stocksReturns, factorsReturns, baseSeed, numTrials, parallelism)
 
     trials.cache()
 
-    val valueAtRisk = calculateRisk.fivePercentVaR(trials)
-    val conditionalValueAtRisk = calculateRisk.fivePercentCVaR(trials)
+    val valueAtRisk = riskCalculator.fivePercentVaR(trials)
+    val conditionalValueAtRisk = riskCalculator.fivePercentCVaR(trials)
 
     println("VaR 5%: " + valueAtRisk)
     println("CVaR 5%: " + conditionalValueAtRisk)
@@ -30,7 +32,7 @@ object RiskCalculator {
 
 }
 
-class RiskCalculator(private val spark: SparkSession) extends Serializable {
+class RiskCalculator(private val spark: SparkSession) extends Serializable with Projector {
 
   private def computeTrialReturns(stocksReturns: Seq[Array[Double]], factorsReturns: Seq[Array[Double]],
            baseSeed: Long, numTrials: Int, parallelism: Int): Dataset[Double] = {

@@ -4,7 +4,7 @@ import java.time.LocalDate
 
 import org.scalatest.{FunSuite, Matchers}
 
-class CleanserSuite extends FunSuite with Matchers {
+class CleanserSuite extends FunSuite with Matchers with Cleanser {
 
   test("History items outside the range should be dropped") {
     val start = LocalDate.of(2016, 12, 31)
@@ -18,7 +18,7 @@ class CleanserSuite extends FunSuite with Matchers {
     val itemsWithLaterEndDate = Array((LocalDate.of(2017, 1, 17), 3.34))
     val items = itemsWithEarlierStartDate ++ itemsWithInRange ++ itemsWithLaterEndDate
 
-    val trimmed = Cleanser.trimToRegion(items, start, end)
+    val trimmed = trimToRegion(items, start, end)
     trimmed should be (itemsWithInRange)
   }
 
@@ -32,7 +32,7 @@ class CleanserSuite extends FunSuite with Matchers {
     )
     val itemsAfterStuffing = Array((start, 6.34)) ++ items ++ Array((end, 8.54))
 
-    val stuffed = Cleanser.trimToRegion(items, start, end)
+    val stuffed = trimToRegion(items, start, end)
     stuffed should be (itemsAfterStuffing)
   }
 
@@ -44,7 +44,7 @@ class CleanserSuite extends FunSuite with Matchers {
       (end, 8.54)
     )
 
-    val stuffed = Cleanser.fillInHistory(items, start, end)
+    val stuffed = fillInHistory(items, start, end)
     stuffed.length should be (11)
     stuffed.init.foreach(_._2 should be (6.34))
     stuffed.last should be ((end, 8.54))
@@ -58,8 +58,8 @@ class CleanserSuite extends FunSuite with Matchers {
       (end, 10.0)
     )
 
-    val stuffed = Cleanser.fillInHistory(items, start, end)
-    val twoWeeksReturn = Cleanser.twoWeekReturns(stuffed)
+    val stuffed = fillInHistory(items, start, end)
+    val twoWeeksReturn = twoWeekReturns(stuffed)
     twoWeeksReturn should be (Array(0, 8))
   }
 
