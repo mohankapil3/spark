@@ -1,1 +1,1 @@
-# Practice projects to learn and have fun with Apache Spark.
+Practice projects to learn and have fun with Apache Spark.
