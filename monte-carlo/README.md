@@ -9,7 +9,7 @@ Here we first download historical financial instruments pricing data from below 
 
   2. https://uk.investing.com/commodities/crude-oil-historical-data
 
-Downloaded data has been checked in to folder - src/main/resources/downloaded-data. Ideally this shouldn't be checked in to source code repository but fear is that this FREE data might be unavailable at some time (as happened with yahoo finance).
+Downloaded data has been checked-in to folder - src/main/resources/downloaded-data. Ideally this shouldn't be checked in to source code repository but fear is that this FREE data might be unavailable at some time (as happened with yahoo finance).
 
 This data is then used to make Monte Carlo risk models, which will then be used to evaluate VaR (Value at Risk) and CVaR (Conditional Value at Risk).
 
@@ -21,7 +21,7 @@ Brief explanation of processing pipeline,
 
   3. SourceDataCollector class combines parser and cleanser to provide unified interface for collecting financial instrument pricing data and market factors.
 
-  4. Then we create predictive models using linear regression (see RiskCalculator.scala). Simplistic approach has been taken, no where near to real world risk models.
+  4. Then we create predictive models using linear regression (see RiskCalculator.scala). Simplistic approach has been taken, nowhere near to real world risk models.
 
   5. Spark SQL DataSet objects are used instead of normal RDD objects to utilize richer aggregation API provided by DataSet objects.
 
