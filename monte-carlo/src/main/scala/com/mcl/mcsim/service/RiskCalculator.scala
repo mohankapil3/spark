@@ -23,11 +23,21 @@ object RiskCalculator {
 
     trials.cache()
 
-    val valueAtRisk = riskCalculator.fivePercentVaR(trials)
-    val conditionalValueAtRisk = riskCalculator.fivePercentCVaR(trials)
+    val valueAtRisk = fivePercentVaR(trials)
+    val conditionalValueAtRisk = fivePercentCVaR(trials)
 
-    println("VaR 5%: " + valueAtRisk)
-    println("CVaR 5%: " + conditionalValueAtRisk)
+    println("Value at Risk (VaR 5%): " + valueAtRisk)
+    println("Conditional Value at Risk (CVaR 5%): " + conditionalValueAtRisk)
+  }
+
+  private def fivePercentVaR(trials: Dataset[Double]): Double = {
+    val quantiles = trials.stat.approxQuantile("value", Array(0.05), 0.0)
+    quantiles.head
+  }
+
+  private def fivePercentCVaR(trials: Dataset[Double]): Double = {
+    val topLosses = trials.orderBy("value").limit(math.max(trials.count().toInt / 20, 1))
+    topLosses.agg("value" -> "avg").first()(0).asInstanceOf[Double]
   }
 
 }
@@ -39,10 +49,10 @@ class RiskCalculator(private val spark: SparkSession) extends Serializable with 
 
     import spark.implicits._
 
-    val factorMat = transpose(factorsReturns)
-    val factorCov = new Covariance(factorMat).getCovarianceMatrix().getData()
+    val factorMatrix = transpose(factorsReturns)
+    val factorCovariance = new Covariance(factorMatrix).getCovarianceMatrix().getData()
     val factorMeans = factorsReturns.map(factor => factor.sum / factor.length).toArray
-    val factorFeatures = factorMat.map(featurize)
+    val factorFeatures = factorMatrix.map(featurize)
     val factorWeights = computeFactorWeights(stocksReturns, factorFeatures)
 
     // Generate different seeds so that our simulations don't all end up with the same results
@@ -50,50 +60,30 @@ class RiskCalculator(private val spark: SparkSession) extends Serializable with 
     val seedDS: Dataset[Long] = seeds.toDS().repartition(parallelism)
 
     // Main computation: run simulations and compute aggregate return for each
-    seedDS.flatMap(trialReturns(_, numTrials / parallelism, factorWeights, factorMeans, factorCov))
+    seedDS.flatMap(trialReturns(_, numTrials / parallelism, factorWeights, factorMeans, factorCovariance))
   }
 
   private def trialReturns(seed: Long, numTrials: Int, instruments: Seq[Array[Double]],
                    factorMeans: Array[Double], factorCovariances: Array[Array[Double]]): Seq[Double] = {
 
-    val rand = new MersenneTwister(seed)
-    val multivariateNormal = new MultivariateNormalDistribution(rand, factorMeans, factorCovariances)
+    val randomGenerator = new MersenneTwister(seed)
+    val multivariateNormal = new MultivariateNormalDistribution(randomGenerator, factorMeans, factorCovariances)
 
-    val trialReturns = new Array[Double](numTrials)
-    for (i <- 0 until numTrials) {
+    (1 to numTrials).map ( _ => {
       val trialFactorReturns = multivariateNormal.sample()
       val trialFeatures = featurize(trialFactorReturns)
-      trialReturns(i) = trialReturn(trialFeatures, instruments)
-    }
-    trialReturns
+      trialReturn(trialFeatures, instruments)
+    })
   }
 
   private def trialReturn(trial: Array[Double], instruments: Seq[Array[Double]]): Double = {
-    var totalReturn = 0.0
-    for (instrument <- instruments) {
-      totalReturn += instrumentTrialReturn(instrument, trial)
-    }
+    val totalReturn = instruments.map(i => instrumentTrialReturn(i, trial)).reduce((r1, r2) => r1 + r2)
     totalReturn / instruments.size
   }
 
   private def instrumentTrialReturn(instrument: Array[Double], trial: Array[Double]): Double = {
-    var instrumentTrialReturn = instrument(0)
-    var i = 0
-    while (i < trial.length) {
-      instrumentTrialReturn += trial(i) * instrument(i+1)
-      i += 1
-    }
-    instrumentTrialReturn
-  }
-
-  private def fivePercentVaR(trials: Dataset[Double]): Double = {
-    val quantiles = trials.stat.approxQuantile("value", Array(0.05), 0.0)
-    quantiles.head
-  }
-
-  private def fivePercentCVaR(trials: Dataset[Double]): Double = {
-    val topLosses = trials.orderBy("value").limit(math.max(trials.count().toInt / 20, 1))
-    topLosses.agg("value" -> "avg").first()(0).asInstanceOf[Double]
+    val returns = for (i <- 0 until trial.length) yield trial(i) * instrument(i+1)
+    instrument(0) + returns.reduce((r1, r2) => r1 + r2)
   }
 
 }
